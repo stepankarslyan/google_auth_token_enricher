@@ -9,10 +9,21 @@ var requester = zmq.socket("asyncreq");
 requester.connect("tcp://localhost:6005");
 console.log("Requester connecting to the localhost 6005...");
 
+var publisher = zmq.socket("pub");
+publisher.bind("tcp://*:1112");
+
 subscriber.on("message", function(data) {
-  var message = data.toString();
-  console.log("Data from publisher: " + message);
-  requester.send(message, function(response) {
+  console.log("Data from publisher: " + data.toString());
+  var token = JSON.parse(data);
+  
+  requester.send(token, function(response) {
     console.log("data from responder: " + response.toString());
+    var tokenId = JSON.parse(response);
+    var userDetail = {
+      userToken: token,
+      userId: tokenId
+    };
+    
+    publisher.send(JSON.stringify(userDetail));
   });
 });
