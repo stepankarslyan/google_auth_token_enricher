@@ -6,7 +6,7 @@ publisher.bind("tcp://*:6003", function(err) {
   else
     console.log("Ok!")
     setInterval(function() {
-      publisher.send("Hello world");
+      publisher.send(JSON.stringify({data: "fdfnrk9vdfmvk"}));
       console.log("Sending data to the subscribers...");
     }, 3000);
 });
