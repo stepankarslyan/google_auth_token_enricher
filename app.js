@@ -1,29 +1,40 @@
+var argv = require('optimist')
+    .default({ 
+      subConn: "tcp://localhost:6003",
+      bind: "tcp://*:1112",
+      reqConn: "tcp://localhost:6005" 
+    })
+    .argv;
+
 var zmq = require("zmq");
 
 var subscriber = zmq.socket("sub");
-subscriber.connect("tcp://localhost:6003");
+subscriber.connect(argv.subConn);
 subscriber.subscribe("");
-console.log("Subscriber connecting to the localhost 6003...");
+console.log("Subscriber connecting to the " + argv.subConn);
 
 var requester = zmq.socket("asyncreq");
-requester.connect("tcp://localhost:6005");
-console.log("Requester connecting to the localhost 6005...");
+requester.connect(argv.reqConn);
+console.log("Requester connecting to the " + argv.reqConn);
 
 var publisher = zmq.socket("pub");
-publisher.bind("tcp://*:1112");
+publisher.bind(argv.bind);
 
 subscriber.on("message", function(data) {
   console.log("Data from publisher: " + data.toString());
-  var token = JSON.parse(data);
+  var tokensVSsession = JSON.parse(data);
   
-  requester.send(token, function(response) {
+  requester.send(tokensVSsession.tokens, function(response) {
     console.log("data from responder: " + response.toString());
-    var tokenId = JSON.parse(response);
-    var userDetail = {
-      userToken: token,
-      userId: tokenId
-    };
+    var userDetails = JSON.parse(response);
+       
+    var message = {
+      id: userDetails.ID,
+      tokens: tokensVSsession.tokens,
+      session: tokensVSsession.session
+    }
     
-    publisher.send(JSON.stringify(userDetail));
+    console.log("publishing: " + JSON.stringify(message));
+    publisher.send(JSON.stringify(message));
   });
 });

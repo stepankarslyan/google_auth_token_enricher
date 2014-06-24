@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": "true",
   "dependencies": {
-    "zmq":"onicollet/zmq"
+    "zmq":"onicollet/zmq",
+    "optimist":"*"
   }
 }
